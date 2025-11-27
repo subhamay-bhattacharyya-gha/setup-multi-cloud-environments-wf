@@ -148,8 +148,6 @@ jobs:
           AZURE_REGION: ${{ inputs.azure-region }}
           ORG_SHORT_NAME: ${{ vars.ORG_SHORT_NAME }}
         run: |
-          # Fetch ORG_SHORT_NAME from repository variables
-          ORG_SHORT_NAME=$(gh variable get ORG_SHORT_NAME -R $REPO)
           
           # Create summary
           echo "## 🎉 Multi-Cloud Environment Setup Complete" >> $GITHUB_STEP_SUMMARY
