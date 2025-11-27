@@ -4,10 +4,6 @@ run-name: Setup Multi-Cloud Environments by ${{ github.actor }}
 on:
   workflow_call:
     inputs:
-      ci-environment:
-        description: "CI environment name"
-        required: true
-        type: string
       aws-region:
         description: "AWS region where services will be deployed"
         required: true
@@ -38,20 +34,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Print Input Variables
-        shell: bash
-        run: |
-          echo "## Input Variables" >> $GITHUB_STEP_SUMMARY
-          echo "- **CI Environment**: ${{ inputs.ci-environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **AWS Region**: ${{ inputs.aws-region }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **GCP Region**: ${{ inputs.gcp-region }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Azure Region**: ${{ inputs.azure-region }}" >> $GITHUB_STEP_SUMMARY
-          echo ""
-          echo "Input Variables:"
-          echo "  CI Environment: ${{ inputs.ci-environment }}"
-          echo "  AWS Region: ${{ inputs.aws-region }}"
-          echo "  GCP Region: ${{ inputs.gcp-region }}"
-          echo "  Azure Region: ${{ inputs.azure-region }}"
 
       ## Git checkout is needed here for the workflow to run in the context of the repository.
       ## This is required to ensure that the workflow has access to the repository context.
@@ -110,7 +92,6 @@ jobs:
         working-directory: ${{ github.workspace }}
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
-          CI_ACCOUNT: ${{ inputs.ci-environment }}
           AWS_REGION: ${{ inputs.aws-region}}
           GCP_REGION: ${{ inputs.gcp-region}}
           AZURE_REGION: ${{ inputs.azure-region}}
@@ -153,7 +134,6 @@ jobs:
           echo "## 🎉 Multi-Cloud Environment Setup Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Environments Created:" >> $GITHUB_STEP_SUMMARY
-          echo "- **CI**: ${{ inputs.ci-environment }}" >> $GITHUB_STEP_SUMMARY
           echo "- **AWS**: ${ORG_SHORT_NAME}-aws-${AWS_REGION}" >> $GITHUB_STEP_SUMMARY
           echo "- **GCP**: ${ORG_SHORT_NAME}-gcp-${GCP_REGION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Azure**: ${ORG_SHORT_NAME}-azure-${AZURE_REGION}" >> $GITHUB_STEP_SUMMARY
