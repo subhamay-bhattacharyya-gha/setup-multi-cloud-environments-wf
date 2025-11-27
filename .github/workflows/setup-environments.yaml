@@ -37,6 +37,21 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Print Input Variables
+        shell: bash
+        run: |
+          echo "## Input Variables" >> $GITHUB_STEP_SUMMARY
+          echo "- **CI Environment**: ${{ inputs.ci-environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **AWS Region**: ${{ inputs.aws-region }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GCP Region**: ${{ inputs.gcp-region }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Azure Region**: ${{ inputs.azure-region }}" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "Input Variables:"
+          echo "  CI Environment: ${{ inputs.ci-environment }}"
+          echo "  AWS Region: ${{ inputs.aws-region }}"
+          echo "  GCP Region: ${{ inputs.gcp-region }}"
+          echo "  Azure Region: ${{ inputs.azure-region }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
