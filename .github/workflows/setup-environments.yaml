@@ -99,9 +99,9 @@ jobs:
           # TEST_ACCOUNT: ${{ inputs.test-environment }}
           # PROD_ACCOUNT: ${{ inputs.prod-environment }}
           # AWS_ACCOUNTS: ${{ vars.AWS_ACCOUNTS }}
-          # AWS_OIDC_ROLE: ${{ vars.AWS_OIDC_ROLE }}
-          # TF_STATE_BUCKET_BASE_NAME: ${{ vars.TF_STATE_BUCKET_BASE_NAME }}
-          # S3_KMS_KEY_ALIAS: ${{ vars.S3_KMS_KEY_ALIAS }}
+          AWS_OIDC_ROLE: ${{ vars.AWS_OIDC_ROLE }}
+          TF_STATE_BUCKET_BASE_NAME: ${{ vars.TF_STATE_BUCKET_BASE_NAME }}
+          S3_KMS_KEY_ALIAS: ${{ vars.S3_KMS_KEY_ALIAS }}
           # AWS_REGION: ${{ inputs.aws-region }}  # added for simpler reuse
           ORG_SHORT_NAME: ${{ vars.ORG_SHORT_NAME }}
         run: |
