@@ -124,7 +124,7 @@ jobs:
           account_id=$(echo "$AWS_ACCOUNTS" | jq -r --arg name "aws" '.[$name]')
           gh variable set TF_STATE_BUCKET_NAME \
             --env "$gh_env_name" \
-            --body "${TF_STATE_BUCKET_BASE_NAME}-${account_id}-${env_name}-${AWS_REGION}"
+            --body "${TF_STATE_BUCKET_BASE_NAME}-${account_id}-aws-${AWS_REGION}"
 
           gh variable set AWS_ROLE_ARN \
             --env "$gh_env_name" \
