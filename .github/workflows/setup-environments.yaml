@@ -58,37 +58,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # - name: Add CODEOWNERS as collaborators
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GH_PAT }}
-      #   run: |
-      #     set -euo pipefail
+      - name: Add CODEOWNERS as collaborators
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          set -euo pipefail
 
-      #     echo "::group::Parsing CODEOWNERS and adding collaborators"
+          echo "::group::Parsing CODEOWNERS and adding collaborators"
 
-      #     # Extract GitHub usernames and teams from CODEOWNERS
-      #     owners=$(grep -v '^#' CODEOWNERS | awk '{$1=""; print $0}' | tr -s ' ' '\n' | grep '^@' | sort -u)
+          # Extract GitHub usernames and teams from CODEOWNERS
+          owners=$(grep -v '^#' CODEOWNERS | awk '{$1=""; print $0}' | tr -s ' ' '\n' | grep '^@' | sort -u)
 
-      #     for owner in $owners; do
-      #       echo "Processing owner: $owner"
+          for owner in $owners; do
+            echo "Processing owner: $owner"
 
-      #       if [[ "$owner" =~ ^@([a-zA-Z0-9._-]+)$ ]]; then
-      #         username="${BASH_REMATCH[1]}"
-      #         echo "Adding user: $username"
-      #         gh api --method PUT "/repos/${GITHUB_REPOSITORY}/collaborators/$username" \
-      #           -f permission='push' || echo "Failed to add $username — skipping."
-      #       elif [[ "$owner" =~ ^@([a-zA-Z0-9._-]+)/([a-zA-Z0-9._-]+)$ ]]; then
-      #         org="${BASH_REMATCH[1]}"
-      #         team="${BASH_REMATCH[2]}"
-      #         echo "Detected team: @${org}/${team}"
-      #         gh api --method PUT "/orgs/${org}/teams/${team}/repos/${GITHUB_REPOSITORY}" \
-      #           -f permission="push"
-      #       else
-      #         echo "❌ Invalid CODEOWNERS entry: $owner"
-      #       fi
-      #     done
+            if [[ "$owner" =~ ^@([a-zA-Z0-9._-]+)$ ]]; then
+              username="${BASH_REMATCH[1]}"
+              echo "Adding user: $username"
+              gh api --method PUT "/repos/${GITHUB_REPOSITORY}/collaborators/$username" \
+                -f permission='push' || echo "Failed to add $username — skipping."
+            elif [[ "$owner" =~ ^@([a-zA-Z0-9._-]+)/([a-zA-Z0-9._-]+)$ ]]; then
+              org="${BASH_REMATCH[1]}"
+              team="${BASH_REMATCH[2]}"
+              echo "Detected team: @${org}/${team}"
+              gh api --method PUT "/orgs/${org}/teams/${team}/repos/${GITHUB_REPOSITORY}" \
+                -f permission="push"
+            else
+              echo "❌ Invalid CODEOWNERS entry: $owner"
+            fi
+          done
 
-      #     echo "::endgroup::"
+          echo "::endgroup::"
 
       - name: Delete all environments
         env:
@@ -146,6 +146,7 @@ jobs:
           AWS_REGION: ${{ inputs.aws-region }}
           GCP_REGION: ${{ inputs.gcp-region }}
           AZURE_REGION: ${{ inputs.azure-region }}
+          ORG_SHORT_NAME: ${{ vars.ORG_SHORT_NAME }}
         run: |
           # Fetch ORG_SHORT_NAME from repository variables
           ORG_SHORT_NAME=$(gh variable get ORG_SHORT_NAME -R $REPO)
