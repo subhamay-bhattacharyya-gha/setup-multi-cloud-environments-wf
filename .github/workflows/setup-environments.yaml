@@ -1,0 +1,251 @@
+name: Setup Multi-Cloud Environments
+run-name: Setup Multi-Cloud Environments by ${{ github.actor }}
+
+on:
+  workflow_call:
+    inputs:
+      ci-environment:
+        description: "CI environment name"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region where services will be deployed"
+        required: true
+        type: string
+      gcp-region:
+        description: "GCP region where services will be deployed"
+        required: true
+        type: string
+      azure-region:
+        description: "Azure region where services will be deployed"
+        required: true
+        type: string
+    secrets:
+      GH_PAT:
+        description: "GitHub Personal Access Token with repo, workflow, and admin:repo_hook scopes"
+        required: true
+
+permissions:
+  contents: write
+  id-token: write
+  actions: write
+  deployments: write
+
+jobs:
+  setup-environments:
+    name: Setup Multi-Cloud Environments
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Setup CI Environment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+          CI_ENV: ${{ inputs.ci-environment }}
+        run: |
+          echo "Setting up CI environment: $CI_ENV"
+          
+          # Create CI environment if it doesn't exist
+          if ! gh api repos/$REPO/environments/$CI_ENV &>/dev/null; then
+            echo "Creating environment: $CI_ENV"
+            gh api -X PUT repos/$REPO/environments/$CI_ENV
+          else
+            echo "Environment $CI_ENV already exists"
+          fi
+          
+          echo "✅ CI environment setup complete"
+
+      - name: Setup AWS Environment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+          AWS_REGION: ${{ inputs.aws-region }}
+        run: |
+          # Get organization short name from repository variable
+          ORG_SHORT_NAME=$(gh variable get ORG_SHORT_NAME -R $REPO)
+          
+          # Construct environment name
+          ENV_NAME="${ORG_SHORT_NAME}-aws-${AWS_REGION}"
+          
+          echo "Setting up AWS environment: $ENV_NAME"
+          
+          # Get AWS account ID from repository variable (using hardcoded "aws" key)
+          AWS_ACCOUNTS=$(gh variable get AWS_ACCOUNTS -R $REPO)
+          AWS_ACCOUNT_ID=$(echo $AWS_ACCOUNTS | jq -r '.aws')
+          
+          if [ "$AWS_ACCOUNT_ID" == "null" ] || [ -z "$AWS_ACCOUNT_ID" ]; then
+            echo "Error: AWS account ID not found for 'aws' key in AWS_ACCOUNTS variable"
+            exit 1
+          fi
+          
+          echo "AWS Account ID: $AWS_ACCOUNT_ID"
+          
+          # Get OIDC role name
+          AWS_OIDC_ROLE=$(gh variable get AWS_OIDC_ROLE -R $REPO)
+          AWS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/${AWS_OIDC_ROLE}"
+          
+          # Get KMS key alias and S3 bucket name
+          S3_KMS_KEY_ALIAS=$(gh variable get S3_KMS_KEY_ALIAS -R $REPO)
+          AWS_TF_STATE_BUCKET_NAME=$(gh variable get AWS_TF_STATE_BUCKET_NAME -R $REPO)
+          
+          # Create environment if it doesn't exist
+          if ! gh api repos/$REPO/environments/$ENV_NAME &>/dev/null; then
+            echo "Creating environment: $ENV_NAME"
+            gh api -X PUT repos/$REPO/environments/$ENV_NAME
+          else
+            echo "Environment $ENV_NAME already exists"
+          fi
+          
+          # Set environment variables
+          echo "Setting AWS_REGION variable"
+          gh variable set AWS_REGION --env $ENV_NAME --body "$AWS_REGION" -R $REPO
+          
+          echo "Setting AWS_ROLE_ARN variable"
+          gh variable set AWS_ROLE_ARN --env $ENV_NAME --body "$AWS_ROLE_ARN" -R $REPO
+          
+          echo "Setting S3_KMS_KEY_ALIAS variable"
+          gh variable set S3_KMS_KEY_ALIAS --env $ENV_NAME --body "$S3_KMS_KEY_ALIAS" -R $REPO
+          
+          echo "Setting AWS_TF_STATE_BUCKET_NAME variable"
+          gh variable set AWS_TF_STATE_BUCKET_NAME --env $ENV_NAME --body "$AWS_TF_STATE_BUCKET_NAME" -R $REPO
+          
+          echo "✅ AWS environment setup complete"
+
+      - name: Setup GCP Environment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+          GCP_REGION: ${{ inputs.gcp-region }}
+        run: |
+          # Get organization short name from repository variable
+          ORG_SHORT_NAME=$(gh variable get ORG_SHORT_NAME -R $REPO)
+          
+          # Construct environment name
+          ENV_NAME="${ORG_SHORT_NAME}-gcp-${GCP_REGION}"
+          
+          echo "Setting up GCP environment: $ENV_NAME"
+          
+          # Get GCP project ID from repository variable (using hardcoded "gcp" key)
+          GCP_PROJECTS=$(gh variable get GCP_PROJECTS -R $REPO)
+          GCP_PROJECT_ID=$(echo $GCP_PROJECTS | jq -r '.gcp')
+          
+          if [ "$GCP_PROJECT_ID" == "null" ] || [ -z "$GCP_PROJECT_ID" ]; then
+            echo "Error: GCP project ID not found for 'gcp' key in GCP_PROJECTS variable"
+            exit 1
+          fi
+          
+          echo "GCP Project ID: $GCP_PROJECT_ID"
+          
+          # Get GCP role ARN (placeholder for now)
+          GCP_ROLE_ARN=$(gh variable get GCP_ROLE_ARN -R $REPO)
+          
+          # Get KMS key alias and bucket name
+          GCP_KMS_KEY_ALIAS=$(gh variable get GCP_KMS_KEY_ALIAS -R $REPO)
+          GCP_TF_STATE_BUCKET_NAME=$(gh variable get GCP_TF_STATE_BUCKET_NAME -R $REPO)
+          
+          # Create environment if it doesn't exist
+          if ! gh api repos/$REPO/environments/$ENV_NAME &>/dev/null; then
+            echo "Creating environment: $ENV_NAME"
+            gh api -X PUT repos/$REPO/environments/$ENV_NAME
+          else
+            echo "Environment $ENV_NAME already exists"
+          fi
+          
+          # Set environment variables
+          echo "Setting GCP_REGION variable"
+          gh variable set GCP_REGION --env $ENV_NAME --body "$GCP_REGION" -R $REPO
+          
+          echo "Setting GCP_ROLE_ARN variable"
+          gh variable set GCP_ROLE_ARN --env $ENV_NAME --body "$GCP_ROLE_ARN" -R $REPO
+          
+          echo "Setting GCP_KMS_KEY_ALIAS variable"
+          gh variable set GCP_KMS_KEY_ALIAS --env $ENV_NAME --body "$GCP_KMS_KEY_ALIAS" -R $REPO
+          
+          echo "Setting GCP_TF_STATE_BUCKET_NAME variable"
+          gh variable set GCP_TF_STATE_BUCKET_NAME --env $ENV_NAME --body "$GCP_TF_STATE_BUCKET_NAME" -R $REPO
+          
+          echo "✅ GCP environment setup complete"
+
+      - name: Setup Azure Environment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+          AZURE_REGION: ${{ inputs.azure-region }}
+        run: |
+          # Get organization short name from repository variable
+          ORG_SHORT_NAME=$(gh variable get ORG_SHORT_NAME -R $REPO)
+          
+          # Construct environment name
+          ENV_NAME="${ORG_SHORT_NAME}-azure-${AZURE_REGION}"
+          
+          echo "Setting up Azure environment: $ENV_NAME"
+          
+          # Get Azure subscription ID from repository variable (using hardcoded "azure" key)
+          AZURE_SUBSCRIPTIONS=$(gh variable get AZURE_SUBSCRIPTIONS -R $REPO)
+          AZURE_SUBSCRIPTION_ID=$(echo $AZURE_SUBSCRIPTIONS | jq -r '.azure')
+          
+          if [ "$AZURE_SUBSCRIPTION_ID" == "null" ] || [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
+            echo "Error: Azure subscription ID not found for 'azure' key in AZURE_SUBSCRIPTIONS variable"
+            exit 1
+          fi
+          
+          echo "Azure Subscription ID: $AZURE_SUBSCRIPTION_ID"
+          
+          # Get Azure role ARN (placeholder for now)
+          AZURE_ROLE_ARN=$(gh variable get AZURE_ROLE_ARN -R $REPO)
+          
+          # Get KMS key alias and bucket name
+          AZURE_KMS_KEY_ALIAS=$(gh variable get AZURE_KMS_KEY_ALIAS -R $REPO)
+          AZURE_TF_STATE_BUCKET_NAME=$(gh variable get AZURE_TF_STATE_BUCKET_NAME -R $REPO)
+          
+          # Create environment if it doesn't exist
+          if ! gh api repos/$REPO/environments/$ENV_NAME &>/dev/null; then
+            echo "Creating environment: $ENV_NAME"
+            gh api -X PUT repos/$REPO/environments/$ENV_NAME
+          else
+            echo "Environment $ENV_NAME already exists"
+          fi
+          
+          # Set environment variables
+          echo "Setting AZURE_REGION variable"
+          gh variable set AZURE_REGION --env $ENV_NAME --body "$AZURE_REGION" -R $REPO
+          
+          echo "Setting AZURE_ROLE_ARN variable"
+          gh variable set AZURE_ROLE_ARN --env $ENV_NAME --body "$AZURE_ROLE_ARN" -R $REPO
+          
+          echo "Setting AZURE_KMS_KEY_ALIAS variable"
+          gh variable set AZURE_KMS_KEY_ALIAS --env $ENV_NAME --body "$AZURE_KMS_KEY_ALIAS" -R $REPO
+          
+          echo "Setting AZURE_TF_STATE_BUCKET_NAME variable"
+          gh variable set AZURE_TF_STATE_BUCKET_NAME --env $ENV_NAME --body "$AZURE_TF_STATE_BUCKET_NAME" -R $REPO
+          
+          echo "✅ Azure environment setup complete"
+
+      - name: Summary
+        shell: bash
+        env:
+          ORG_SHORT_NAME: ${{ vars.ORG_SHORT_NAME }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          GCP_REGION: ${{ inputs.gcp-region }}
+          AZURE_REGION: ${{ inputs.azure-region }}
+        run: |
+          echo "## 🎉 Multi-Cloud Environment Setup Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environments Created:" >> $GITHUB_STEP_SUMMARY
+          echo "- **CI**: ${{ inputs.ci-environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **AWS**: ${ORG_SHORT_NAME}-aws-${AWS_REGION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GCP**: ${ORG_SHORT_NAME}-gcp-${GCP_REGION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Azure**: ${ORG_SHORT_NAME}-azure-${AZURE_REGION}" >> $GITHUB_STEP_SUMMARY
