@@ -98,7 +98,7 @@ jobs:
           # DEVL_ACCOUNT: ${{ inputs.devl-environment }}
           # TEST_ACCOUNT: ${{ inputs.test-environment }}
           # PROD_ACCOUNT: ${{ inputs.prod-environment }}
-          AWS_ACCOUNTS: ${{ vars.AWS_ACCOUNTS }}
+          MULTI_CLOUD_ACCOUNTS: ${{ vars.MULTI_CLOUD_ACCOUNTS }}
           AWS_OIDC_ROLE: ${{ vars.AWS_OIDC_ROLE }}
           TF_STATE_BUCKET_BASE_NAME: ${{ vars.TF_STATE_BUCKET_BASE_NAME }}
           S3_KMS_KEY_ALIAS: ${{ vars.S3_KMS_KEY_ALIAS }}
@@ -121,7 +121,7 @@ jobs:
             --env "$gh_env_name" \
             --body "alias/${S3_KMS_KEY_ALIAS}"
 
-          account_id=$(echo "$AWS_ACCOUNTS" | jq -r --arg name "aws" '.[$name]')
+          account_id=$(echo "$MULTI_CLOUD_ACCOUNTS" | jq -r --arg name "aws" '.[$name]')
           gh variable set TF_STATE_BUCKET_NAME \
             --env "$gh_env_name" \
             --body "${TF_STATE_BUCKET_BASE_NAME}-${account_id}-aws-${AWS_REGION}"
