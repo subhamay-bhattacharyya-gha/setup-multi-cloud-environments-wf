@@ -86,9 +86,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           REPO: ${{ github.repository }}
           AWS_REGION: ${{ inputs.aws-region }}
+          ORG_SHORT_NAME: "sb"
         run: |
-          # Get organization short name from repository variable
-          ORG_SHORT_NAME=$(gh variable get ORG_SHORT_NAME -R $REPO)
+          # # Get organization short name from repository variable
+          # ORG_SHORT_NAME=$(gh variable get ORG_SHORT_NAME -R $REPO)
           
           # Construct environment name
           ENV_NAME="${ORG_SHORT_NAME}-aws-${AWS_REGION}"
