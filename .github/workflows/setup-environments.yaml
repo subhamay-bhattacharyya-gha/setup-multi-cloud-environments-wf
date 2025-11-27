@@ -127,13 +127,13 @@ jobs:
           set -euo pipefail
 
           echo "::group::Creating environments and setting secrets and variables"
-          gh_env_name=gh_env_name="${ORG_SHORT_NAME}-aws-${AWS_REGION}"
+          gh_env_name="${ORG_SHORT_NAME}-aws-${AWS_REGION}"
           gh api --method PUT "repos/${GITHUB_REPOSITORY}/environments/$gh_env_name"
 
-          gh_env_name=gh_env_name="${ORG_SHORT_NAME}-gcp-${AWS_REGION}"
+          gh_env_name="${ORG_SHORT_NAME}-gcp-${GCP_REGION}"
           gh api --method PUT "repos/${GITHUB_REPOSITORY}/environments/$gh_env_name"
 
-          gh_env_name=gh_env_name="${ORG_SHORT_NAME}-azure-${AWS_REGION}"
+          gh_env_name="${ORG_SHORT_NAME}-azure-${AZURE_REGION}"
           gh api --method PUT "repos/${GITHUB_REPOSITORY}/environments/$gh_env_name"
 
           echo "::endgroup::"
