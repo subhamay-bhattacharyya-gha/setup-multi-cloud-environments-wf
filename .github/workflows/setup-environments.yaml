@@ -121,7 +121,7 @@ jobs:
             --env "$gh_env_name" \
             --body "alias/${S3_KMS_KEY_ALIAS}"
 
-          account_id=$(echo "$AWS_ACCOUNTS" | jq -r --arg name "$account_name" '.[$name]')
+          account_id=$(echo "$AWS_ACCOUNTS" | jq -r --arg name "aws" '.[$name]')
           gh variable set TF_STATE_BUCKET_NAME \
             --env "$gh_env_name" \
             --body "${TF_STATE_BUCKET_BASE_NAME}-${account_id}-${env_name}-${AWS_REGION}"
