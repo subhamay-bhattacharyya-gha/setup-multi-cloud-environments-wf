@@ -111,11 +111,69 @@ jobs:
           gh_env_name="${ORG_SHORT_NAME}-aws-${AWS_REGION}"
           gh api --method PUT "repos/${GITHUB_REPOSITORY}/environments/$gh_env_name"
 
+          ############## Add variables to the AWS environment    --- Start
+          echo "::group::Adding variables to AWS environment: $gh_env_name"
+          gh variable set REGION \
+            --env "$gh_env_name" \
+            --body "${AWS_REGION}"
+
+          gh variable set S3_KMS_KEY_ALIAS \
+            --env "$gh_env_name" \
+            --body "alias/${S3_KMS_KEY_ALIAS}"
+
+          gh variable set TF_STATE_BUCKET_NAME \
+            --env "$gh_env_name" \
+            --body "${TF_STATE_BUCKET_BASE_NAME}-${account_id}-${env_name}-${AWS_REGION}"
+
+          gh variable set AWS_ROLE_ARN \
+            --env "$gh_env_name" \
+            --body "arn:aws:iam::${account_id}:role/${AWS_OIDC_ROLE}"
+          echo "::endgroup::"
+          ############## Add variables to the environment   --- End
+
           gh_env_name="${ORG_SHORT_NAME}-gcp-${GCP_REGION}"
           gh api --method PUT "repos/${GITHUB_REPOSITORY}/environments/$gh_env_name"
+          ############## Add variables to the GCP environment    --- Start
+          echo "::group::Adding variables to GCP environment: $gh_env_name"
+          gh variable set REGION \
+            --env "$gh_env_name" \
+            --body "${GCP_REGION}"
+
+          # gh variable set S3_KMS_KEY_ALIAS \
+          #   --env "$gh_env_name" \
+          #   --body "alias/${S3_KMS_KEY_ALIAS}"
+
+          gh variable set TF_STATE_BUCKET_NAME \
+            --env "$gh_env_name" \
+            --body "${TF_STATE_BUCKET_BASE_NAME}-${account_id}-${env_name}-${AWS_REGION}"
+
+          # gh variable set AWS_ROLE_ARN \
+          #   --env "$gh_env_name" \
+          #   --body "arn:aws:iam::${account_id}:role/${AWS_OIDC_ROLE}"
+          echo "::endgroup::"
+          ############## Add variables to the environment   --- End
 
           gh_env_name="${ORG_SHORT_NAME}-azure-${AZURE_REGION}"
           gh api --method PUT "repos/${GITHUB_REPOSITORY}/environments/$gh_env_name"
+          ############## Add variables to the Azure environment    --- Start
+          echo "::group::Adding variables to Azure environment: $gh_env_name"
+          gh variable set REGION \
+            --env "$gh_env_name" \
+            --body "${AZURE_REGION}"
+
+          # gh variable set S3_KMS_KEY_ALIAS \
+          #   --env "$gh_env_name" \
+          #   --body "alias/${S3_KMS_KEY_ALIAS}"
+
+          gh variable set TF_STATE_BUCKET_NAME \
+            --env "$gh_env_name" \
+            --body "${TF_STATE_BUCKET_BASE_NAME}-${account_id}-${env_name}-${AWS_REGION}"
+
+          # gh variable set AWS_ROLE_ARN \
+          #   --env "$gh_env_name" \
+          #   --body "arn:aws:iam::${account_id}:role/${AWS_OIDC_ROLE}"
+          echo "::endgroup::"
+          ############## Add variables to the environment   --- End
 
           echo "::endgroup::"
 
